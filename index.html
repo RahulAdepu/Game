@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOps Infrastructure Mastery | Memory Match</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-back: #1e293b;
+      --card-border: #38bdf8;
+      --card-front: #ffffff;
+      --success: #22c55e;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --panel: #111827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #172554 0%, var(--bg) 45%);
+      color: var(--text);
+      font-family: Inter, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    .app {
+      width: min(960px, 100%);
+      background: color-mix(in srgb, var(--bg) 85%, #000);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: clamp(1rem, 2vw, 2rem);
+      box-shadow: 0 20px 40px rgba(2, 6, 23, 0.65);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge {
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid color-mix(in srgb, var(--success), #fff 10%);
+      color: var(--success);
+      background: color-mix(in srgb, var(--success) 12%, transparent);
+    }
+
+    .telemetry {
+      background: var(--panel);
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .telemetry h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .metrics {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.95rem;
+    }
+
+    .metrics span {
+      color: var(--text);
+      padding: 0.3rem 0.6rem;
+      background: #0b1222;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+    }
+
+    button {
+      border: 1px solid var(--card-border);
+      background: color-mix(in srgb, var(--card-border) 15%, #0b1222);
+      color: #e0f2fe;
+      padding: 0.55rem 1rem;
+      border-radius: 9px;
+      font: 600 0.95rem Inter, sans-serif;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    button:hover,
+    button:focus-visible {
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--card-border) 28%, #0b1222);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(64px, 1fr));
+      gap: clamp(0.5rem, 1.5vw, 0.9rem);
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: none;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      perspective: 1000px;
+    }
+
+    .card:disabled {
+      cursor: default;
+    }
+
+    .card-inner {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease;
+    }
+
+    .card.is-flipped .card-inner,
+    .card.is-matched .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    .front {
+      background: var(--card-front);
+      transform: rotateY(180deg);
+      border: 1px solid #e2e8f0;
+      padding: 0.8rem;
+    }
+
+    .front img {
+      width: 72%;
+      height: 72%;
+      object-fit: contain;
+      filter: saturate(0.95) contrast(1.05);
+    }
+
+    .back {
+      background: linear-gradient(145deg, #233447, var(--card-back));
+      border: 1px solid color-mix(in srgb, var(--card-border) 55%, #1e293b);
+      color: #7dd3fc;
+      font-family: "JetBrains Mono", monospace;
+      font-size: clamp(0.8rem, 2vw, 1rem);
+      letter-spacing: 0.06em;
+    }
+
+    .card.is-matched .front {
+      border-color: var(--success);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success), #fff 8%);
+      animation: pulse 0.55s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: rotateY(180deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(1.04); }
+      100% { transform: rotateY(180deg) scale(1); }
+    }
+
+    .status {
+      margin-top: 1rem;
+      min-height: 1.5rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 540px) {
+      .board {
+        gap: 0.45rem;
+      }
+
+      .front {
+        padding: 0.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Build Status: DevOps Infrastructure Mastery</h1>
+      <span class="badge" id="pipelineState">Pipeline Running</span>
+    </header>
+
+    <section class="telemetry" aria-label="Telemetry">
+      <h2>Telemetry</h2>
+      <div class="metrics" aria-live="polite">
+        <span id="moveCount">Moves: 0</span>
+        <span id="timeElapsed">Time: 0s</span>
+      </div>
+      <button id="deployBtn" type="button">Deploy</button>
+    </section>
+
+    <section class="board" id="board" aria-label="Memory cards"></section>
+    <p class="status" id="statusMessage">Match all services to complete deployment.</p>
+  </main>
+
+  <script>
+    const tools = [
+      { name: 'AWS', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/amazonaws.svg' },
+      { name: 'Docker', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/docker.svg' },
+      { name: 'Terraform', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/terraform.svg' },
+      { name: 'Kubernetes', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/kubernetes.svg' },
+      { name: 'Jenkins', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/jenkins.svg' },
+      { name: 'GitHub', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/github.svg' },
+      { name: 'Ansible', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/ansible.svg' },
+      { name: 'Linux', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/linux.svg' }
+    ];
+
+    const board = document.getElementById('board');
+    const moveCountEl = document.getElementById('moveCount');
+    const timeElapsedEl = document.getElementById('timeElapsed');
+    const deployBtn = document.getElementById('deployBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const pipelineState = document.getElementById('pipelineState');
+
+    let cards = [];
+    let flippedCards = [];
+    let moves = 0;
+    let matches = 0;
+    let timer = 0;
+    let intervalId = null;
+    let lockBoard = false;
+
+    const shuffle = (array) => {
+      const cloned = [...array];
+      for (let i = cloned.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+      }
+      return cloned;
+    };
+
+    const startTimer = () => {
+      if (intervalId) return;
+      intervalId = setInterval(() => {
+        timer += 1;
+        timeElapsedEl.textContent = `Time: ${timer}s`;
+      }, 1000);
+    };
+
+    const stopTimer = () => {
+      clearInterval(intervalId);
+      intervalId = null;
+    };
+
+    const updateMoves = () => {
+      moveCountEl.textContent = `Moves: ${moves}`;
+    };
+
+    const createCard = (tool, index) => {
+      const card = document.createElement('button');
+      card.className = 'card';
+      card.type = 'button';
+      card.dataset.tool = tool.name;
+      card.dataset.index = String(index);
+      card.setAttribute('aria-label', `${tool.name} card`);
+
+      card.innerHTML = `
+        <span class="card-inner">
+          <span class="face back" aria-hidden="true">DEVOPS</span>
+          <span class="face front">
+            <img src="${tool.logo}" alt="${tool.name} logo" loading="lazy" />
+          </span>
+        </span>
+      `;
+
+      card.addEventListener('click', () => handleFlip(card));
+      return card;
+    };
+
+    const handleMatch = () => {
+      const [first, second] = flippedCards;
+      first.classList.add('is-matched');
+      second.classList.add('is-matched');
+      first.disabled = true;
+      second.disabled = true;
+      matches += 1;
+      statusMessage.textContent = `Matched ${first.dataset.tool}. Services stable.`;
+      flippedCards = [];
+      lockBoard = false;
+
+      if (matches === tools.length) {
+        pipelineState.textContent = 'Pipeline Passed';
+        pipelineState.style.color = '#22C55E';
+        statusMessage.textContent = `Deployment complete in ${moves} moves and ${timer}s.`;
+        stopTimer();
+      }
+    };
+
+    const unflipCards = () => {
+      const [first, second] = flippedCards;
+      setTimeout(() => {
+        first.classList.remove('is-flipped');
+        second.classList.remove('is-flipped');
+        flippedCards = [];
+        lockBoard = false;
+        statusMessage.textContent = 'No match. Rolling back and retrying.';
+      }, 550);
+    };
+
+    const handleFlip = (card) => {
+      if (lockBoard || card.classList.contains('is-flipped') || card.classList.contains('is-matched')) {
+        return;
+      }
+
+      startTimer();
+      card.classList.add('is-flipped');
+      flippedCards.push(card);
+
+      if (flippedCards.length < 2) {
+        return;
+      }
+
+      moves += 1;
+      updateMoves();
+      lockBoard = true;
+
+      const [first, second] = flippedCards;
+      if (first.dataset.tool === second.dataset.tool) {
+        handleMatch();
+      } else {
+        unflipCards();
+      }
+    };
+
+    const initGame = () => {
+      stopTimer();
+      timer = 0;
+      moves = 0;
+      matches = 0;
+      flippedCards = [];
+      lockBoard = false;
+      cards = shuffle([...tools, ...tools]);
+
+      timeElapsedEl.textContent = 'Time: 0s';
+      updateMoves();
+      board.innerHTML = '';
+      statusMessage.textContent = 'Match all services to complete deployment.';
+      pipelineState.textContent = 'Pipeline Running';
+      pipelineState.style.color = '#22C55E';
+
+      cards.forEach((tool, index) => {
+        board.appendChild(createCard(tool, index));
+      });
+    };
+
+    deployBtn.addEventListener('click', initGame);
+    initGame();
+  </script>
+</body>
+</html>
